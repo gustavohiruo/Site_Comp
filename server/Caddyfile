@@ -1,0 +1,14 @@
+# Um endereço só (ex.: telinha.duckdns.org) para tudo:
+#   /api/*  → servidor de tokens
+#   resto   → LiveKit (sinalização via WebSocket)
+{$DOMAIN} {
+	encode zstd gzip
+
+	handle /api/* {
+		reverse_proxy 127.0.0.1:3001
+	}
+
+	handle {
+		reverse_proxy 127.0.0.1:7880
+	}
+}

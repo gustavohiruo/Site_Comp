@@ -1,0 +1,92 @@
+# Servidor do Telinha — LiveKit + servidor de tokens + Caddy (HTTPS) + DuckDNS.
+#
+# TODA a configuração vem do arquivo .env (criado pelo setup.sh). Nada de IP
+# ou domínio escrito aqui: pra mudar de máquina (PC de casa → Oracle) basta
+# copiar a pasta server/ com o .env e subir de novo.
+#
+# Funciona em x86 (amd64) e ARM (arm64 / Oracle Ampere): todas as imagens
+# abaixo existem nas duas arquiteturas, e o servidor de tokens é compilado
+# na própria máquina.
+#
+#   Subir:   docker compose up -d --build
+#   Logs:    docker compose logs -f
+#   Parar:   docker compose down
+#
+# network_mode: host = os serviços usam a rede da própria máquina. É o modo
+# recomendado pelo LiveKit: a mídia (UDP) chega direto, sem o NAT do Docker.
+# (Só funciona de verdade em Linux — no Windows, veja "Testar no Windows" no README.)
+
+services:
+  # SFU: recebe as telas de cada um e distribui
+  livekit:
+    image: livekit/livekit-server:v1.13.11
+    network_mode: host
+    restart: unless-stopped
+    environment:
+      # Configuração do LiveKit montada a partir do .env
+      LIVEKIT_CONFIG: |
+        port: 7880
+        rtc:
+          tcp_port: 7881          # fallback por TCP (redes que bloqueiam UDP)
+          udp_port: 7882          # toda a mídia por UMA porta UDP
+          use_external_ip: true   # descobre o IP público sozinho
+        keys:
+          ${LIVEKIT_API_KEY:?rode o setup.sh}: ${LIVEKIT_API_SECRET:?rode o setup.sh}
+        room:
+          auto_create: false      # só o servidor de tokens cria salas
+          max_participants: ${MAX_PARTICIPANTS:-6}
+          empty_timeout: 300
+        turn:
+          enabled: true
+          domain: ${DOMAIN:?defina DOMAIN no .env}
+          udp_port: 3478
+          relay_range_start: 30000
+          relay_range_end: 30100
+        logging:
+          level: info
+
+  # Cria salas, confere senha e entrega o token (com as regras da sala)
+  token:
+    build: ./token
+    network_mode: host
+    restart: unless-stopped
+    environment:
+      PORT: "3001"
+      LIVEKIT_HOST: http://127.0.0.1:7880
+      LIVEKIT_API_KEY: ${LIVEKIT_API_KEY}
+      LIVEKIT_API_SECRET: ${LIVEKIT_API_SECRET}
+      MAX_PARTICIPANTS: ${MAX_PARTICIPANTS:-6}
+      MAX_QUALITY: ${MAX_QUALITY:-1080}
+      VOICE_ENABLED: ${VOICE_ENABLED:-false}
+
+  # HTTPS automático (Let's Encrypt). O site no GitHub Pages é HTTPS,
+  # então só consegue falar com um servidor seguro (wss://)
+  caddy:
+    image: caddy:2.8.4-alpine
+    network_mode: host
+    restart: unless-stopped
+    environment:
+      DOMAIN: ${DOMAIN}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+
+  # Mantém o DuckDNS apontando pro IP atual desta máquina (a cada 5 min)
+  duckdns:
+    image: curlimages/curl:8.10.1
+    restart: unless-stopped
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        while true; do
+          echo "DuckDNS: $$(curl -s "https://www.duckdns.org/update?domains=$${DUCKDNS_SUBDOMAIN}&token=$${DUCKDNS_TOKEN}&ip=")"
+          sleep 300
+        done
+    environment:
+      DUCKDNS_SUBDOMAIN: ${DUCKDNS_SUBDOMAIN}
+      DUCKDNS_TOKEN: ${DUCKDNS_TOKEN}
+
+volumes:
+  caddy_data:
+  caddy_config:

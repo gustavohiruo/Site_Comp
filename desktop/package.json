@@ -1,0 +1,14 @@
+{
+  "name": "telinha-desktop",
+  "private": true,
+  "version": "1.0.0",
+  "description": "App desktop do Telinha (Tauri). Guardado: veja a seção 'Retomar o app' no README.",
+  "scripts": {
+    "dev": "tauri dev",
+    "build": "tauri build",
+    "tauri": "tauri"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "^2.1.0"
+  }
+}

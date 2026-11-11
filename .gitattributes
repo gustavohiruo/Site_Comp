@@ -1,0 +1,7 @@
+# Tudo com quebra de linha LF (o servidor roda em Linux: setup.sh com CRLF quebra)
+* text=auto eol=lf
+*.ps1 text eol=crlf
+*.png binary
+*.ico binary
+*.icns binary
+*.wav binary

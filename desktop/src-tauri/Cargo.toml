@@ -1,0 +1,24 @@
+[package]
+name = "telinha"
+version = "1.0.0"
+description = "Voz e compartilhamento de tela entre amigos"
+edition = "2021"
+
+[lib]
+name = "telinha_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+# Sem plugins extras: quanto menos coisa, mais leve o app
+tauri = { version = "2", features = [] }
+
+# Build de release o mais otimizado possível
+[profile.release]
+opt-level = 3        # máximo de velocidade
+lto = "fat"          # otimiza o programa inteiro de uma vez
+codegen-units = 1    # compila mais devagar, roda mais rápido
+panic = "abort"      # binário menor
+strip = true         # remove símbolos de debug

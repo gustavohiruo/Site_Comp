@@ -1,0 +1,20 @@
+# Dependências e builds
+node_modules
+dist
+dist-app
+*.local
+.DS_Store
+
+# Configuração com chaves secretas (só o .env.example vai pro git)
+.env
+.env.*
+!.env.example
+
+# Programas baixados pelo server/windows/iniciar.ps1 (LiveKit, Caddy)
+server/windows/bin/
+*.exe
+*.zip
+
+# App desktop (compilação do Rust)
+desktop/src-tauri/target
+desktop/src-tauri/gen/schemas
