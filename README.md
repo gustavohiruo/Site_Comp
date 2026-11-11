@@ -103,6 +103,7 @@ Precisa do **Node.js 24 ou mais novo** (https://nodejs.org).
    - **Primeira vez:** ele pergunta o subdomínio e o token do DuckDNS, cria o `server\.env` com chaves novas e baixa o LiveKit e o Caddy oficiais.
    - **Para parar:** **Ctrl+C**.
    - **Só neste PC** (sem DuckDNS nem HTTPS, pra desenvolver com `npm run dev`): `.\iniciar.ps1 -Local`.
+   - **Portas 80 e 443 livres:** no modo completo, o Caddy precisa delas. Se outro programa já usa alguma (IIS, XAMPP, Apache), feche esse programa antes.
 3. Siga a partir do passo **"Fixar o IP interno"**, abaixo. Roteador, portas, DuckDNS e teste valem igual.
 
 O servidor roda no mesmo PC em que você joga. Por isso o padrão é 6 pessoas e 1080p. Quando passar pro mini servidor, suba pra 10.
@@ -257,6 +258,8 @@ O Caddy pega um certificado HTTPS novo sozinho na primeira vez. O plano grátis 
 3. Se o seu subdomínio **não** for `telinha`: em **Settings → Secrets and variables → Actions → aba Variables**, crie `SERVER_URL` com o seu endereço (ex.: `meunome.duckdns.org`).
 4. Faça um push. O site fica em `https://SEU-USUARIO.github.io/telinha/`.
 
+Se um dia o endereço mudar e o site ainda não tiver sido republicado, cada pessoa pode colocar o endereço novo em **Configurações → Endereço do servidor** (botão no canto da tela inicial). Fica salvo só no navegador dela.
+
 ## Desenvolver localmente
 
 1. **Servidor local:** `server\windows\iniciar.ps1 -Local`. Ele cria o `.env` se não existir; responda qualquer coisa no DuckDNS, que no modo local não é usado.
@@ -267,11 +270,27 @@ O Caddy pega um certificado HTTPS novo sozinho na primeira vez. O plano grátis 
    ```
 3. **Rodar:** `npm install` e `npm run dev`, depois abra http://localhost:5173. Pra simular amigos, use janelas anônimas.
 
+Se o campo **Configurações → Endereço do servidor** estiver preenchido nesse navegador, ele vale mais que o `.env.local`. Deixe em branco pra testar localmente.
+
 ## Dicas
 
 - **Jogo em tela cheia exclusiva** pode aparecer preto. Use **janela sem bordas**.
 - **Trocar a qualidade da sua tela** no meio da transmissão faz o vídeo piscar 1 ou 2 segundos pra quem assiste.
-- **A aba do Telinha pode ficar escondida** enquanto você joga. Testamos 6 minutos em segundo plano sem queda de FPS.
+- **A aba do Telinha pode ficar escondida** enquanto você joga. Num teste de 6 minutos com a aba em segundo plano, o FPS enviado não caiu. Esse teste foi feito num Chrome de teste, que captura a 20 fps; com um jogo rodando de verdade ainda falta medir.
+- **Modos beta 1440p · 120 e 240 fps:** aparecem na lista, mas **ficam sempre bloqueados** com este servidor. O `MAX_QUALITY` vai no máximo até 1440 a 60 fps. Pra liberar seria preciso uma opção a mais no servidor (ainda não existe).
+
+## O que já foi testado e o que não foi
+
+| Parte | Situação |
+|---|---|
+| Site + LiveKit + servidor de tokens rodando no Windows (`iniciar.ps1 -Local`) | ✅ Testado com 5 pessoas, 3 transmitindo ao mesmo tempo |
+| Voz desligada (sem pedir microfone, token sem microfone) e voz religada pelo `.env` | ✅ Testado |
+| Limite de qualidade do servidor, limite de pessoas, aba em segundo plano | ✅ Testado (aba escondida: a 20 fps, ver Dicas) |
+| `docker-compose.yml` e `setup.sh` (Ubuntu) | ⚠️ Não testado (a configuração do LiveKit é a mesma da testada no Windows) |
+| `iniciar.ps1` no modo completo (Caddy/HTTPS + DuckDNS) | ⚠️ Não testado |
+| Acesso de fora de casa, roteador, portas | ⚠️ Depende da sua rede; siga o [teste de fora](#testar-se-está-acessível-de-fora-de-casa) |
+| Guia B (Oracle) | ⚠️ Não testado |
+| 60 fps e som da tela com um jogo de verdade | ⚠️ Não testado |
 
 ---
 
